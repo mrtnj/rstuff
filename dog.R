@@ -1,4 +1,6 @@
 
+## Simulate a pointing test situation
+
 cap <- function(x, lower = 0, upper = 1) {
   x <- ifelse (x < lower, lower, x)
   x <- ifelse (x > upper, upper, x)
