@@ -5,20 +5,20 @@ library(ggplot2)
 library(plyr)
 library(magrittr)
 
-simulate_records <- function(years = 116,
-                             tries_per_year = 100,
-                             intercept = 7,
-                             sd = 0.4,
-                             improvement = 0.01,
-                             improvement_squared = 0) {
+
+## Simulation functions that work on a set of prior parameters, and return simulated values.
+
+simulate_records <- function(p,
+                             years = 116,
+                             tries_per_year = 100) {
   jumps <- numeric(years)
   record <- numeric(length(jumps))
-  jumps[1] <- max(rnorm(tries_per_year, intercept, sd))
+  jumps[1] <- max(rnorm(tries_per_year, p$intercept, p$sd))
   record[1] <- jumps[1]
   for (j in 2:length(jumps)) {
     jumps_this_year <- rnorm(tries_per_year,
-                             intercept + improvement * (j - 1) +
-                               improvement_squared * (j - 1)^2, sd)
+                             p$intercept + p$improvement * (j - 1) +
+                               p$improvement_squared * (j - 1)^2, p$sd)
     jumps[j] <- max(jumps_this_year)
     if (jumps[j] > record[j - 1])
       record[j] <- jumps[j]
@@ -29,20 +29,17 @@ simulate_records <- function(years = 116,
 }
 
 
-simulate_records_random <- function(years = 116,
-                                    tries_per_year = 100,
-                                    intercept,
-                                    sd,
-                                    improvement,
-                                    improvement_p) {
+simulate_records_random <- function(p,
+                                    years = 116,
+                                    tries_per_year = 100) {
   jumps <- numeric(years)
   record <- numeric(length(jumps))
-  improvement <- rbinom(n = years, size = 1, prob = improvement_p)
-  jumps[1] <- max(rnorm(tries_per_year, intercept + improvement[1], sd))
+  improvement <- rbinom(n = years, size = 1, prob = p$improvement_p)
+  jumps[1] <- max(rnorm(tries_per_year, p$intercept + improvement[1], p$sd))
   record[1] <- jumps[1]
   for (j in 2:length(jumps)) {
     jumps_this_year <- rnorm(tries_per_year,
-                             intercept + sum(improvement[1:j]), sd)
+                             p$intercept + sum(improvement[1:j]), p$sd)
     jumps[j] <- max(jumps_this_year)
     if (jumps[j] > record[j - 1])
       record[j] <- jumps[j]
@@ -54,21 +51,18 @@ simulate_records_random <- function(years = 116,
 
 
 
-simulate_records_saturating <- function(years = 116,
-                                       tries_per_year = 100,
-                                       intercept,
-                                       sd,
-                                       mu_max,
-                                       K) {
+simulate_records_saturating <- function(p,
+                                        years = 116,
+                                        tries_per_year = 100) {
   jumps <- numeric(years)
   record <- numeric(length(jumps))
-  mu <- mu_max * 1:years / (K + (1:years))
+  mu <- p$mu_max * 1:years / (p$K + (1:years))
   
-  jumps[1] <- max(rnorm(tries_per_year, intercept + mu[1], sd))
+  jumps[1] <- max(rnorm(tries_per_year, p$intercept + mu[1], p$sd))
   record[1] <- jumps[1]
   for (j in 2:length(jumps)) {
     jumps_this_year <- rnorm(tries_per_year,
-                             intercept + mu[j], sd)
+                             p$intercept + mu[j], p$sd)
     jumps[j] <- max(jumps_this_year)
     if (jumps[j] > record[j - 1])
       record[j] <- jumps[j]
@@ -79,22 +73,18 @@ simulate_records_saturating <- function(years = 116,
 }
 
 
-simulate_records_logistic <- function(years = 116,
-                                      tries_per_year = 100,
-                                      intercept,
-                                      sd,
-                                      mu_max,
-                                      a,
-                                      b) {
+simulate_records_logistic <- function(p,
+                                      years = 116,
+                                      tries_per_year = 100) {
   jumps <- numeric(years)
   record <- numeric(length(jumps))
-  mu <- mu_max / (1 + exp(-a * (1:years - b)))
+  mu <- p$mu_max / (1 + exp(-p$a * (1:years - p$b)))
   
-  jumps[1] <- max(rnorm(tries_per_year, intercept + mu[1], sd))
+  jumps[1] <- max(rnorm(tries_per_year, p$intercept + mu[1], p$sd))
   record[1] <- jumps[1]
   for (j in 2:length(jumps)) {
     jumps_this_year <- rnorm(tries_per_year,
-                             intercept + mu[j], sd)
+                             p$intercept + mu[j], p$sd)
     jumps[j] <- max(jumps_this_year)
     if (jumps[j] > record[j - 1])
       record[j] <- jumps[j]
@@ -104,6 +94,53 @@ simulate_records_logistic <- function(years = 116,
   list(record = record, season_best = jumps)
 }
 
+
+## Functions for generation prior values
+
+intercept_prior <- function(n) abs(rnorm(n, 5, 1))
+sd_prior <- function(n) abs(rnorm(n, 0, 1))
+improvement_prior <- function(n) rnorm(n, 0, 0.1)
+
+priors_improvement <- function(nsim)
+  data.frame(intercept = intercept_prior(nsim),
+             sd = sd_prior(nsim),
+             improvement = improvement_prior(nsim),
+             improvement_squared = 0)
+
+priors_no_improvement <- function(nsim)
+  data.frame(intercept = intercept_prior(nsim),
+             sd = sd_prior(nsim),
+             improvement = 0,
+             improvement_squared = 0)
+
+priors_curved_improvement <- function(nsim)
+  data.frame(intercept = intercept_prior(nsim),
+             sd = sd_prior(nsim),
+             improvement = improvement_prior(nsim),
+             improvement_squared = improvement_prior(nsim))
+
+priors_random_improvement <- function(nsim)
+  data.frame(intercept = intercept_prior(nsim),
+             sd = sd_prior(nsim),
+             improvement = 10 * improvement_prior(nsim),
+             improvement_p = runif(nsim, 0, 1))
+
+priors_saturating_improvement <- function(nsim)
+  data.frame(intercept = intercept_prior(nsim),
+             sd = sd_prior(nsim),
+             mu_max = improvement_prior(nsim),
+             K = runif(nsim, 0, 1000))
+
+priors_logistic_improvement <- function(nsim)
+  data.frame(intercept = intercept_prior(nsim),
+             sd = sd_prior(nsim),
+             mu_max = improvement_prior(nsim),
+             a = rnorm(nsim, 0, 10),
+             b = rnorm(nsim, 0, 10))
+
+
+
+## Compare simulated data to real data, keep accepted, and return relevant parts.
 
 evaluate_abc <- function(sims, priors, cutoff = 3) {
   euclidian_distance <- function(p, q) sqrt(sum((p - q)^2))
@@ -130,42 +167,17 @@ evaluate_abc <- function(sims, priors, cutoff = 3) {
   results
 }
 
+## ABC run function: just shoves parameters into a simulation function.
 
-abc_linear <- function(priors) {
-  alply(priors, 1, function(x) 
-    simulate_records(intercept = x$intercept,
-                     sd = x$sd,
-                     improvement = x$improvement,
-                     improvement_squared = x$improvement_squared))
+abc <- function(priors, simulation_fun) {
+  alply(priors, 1, simulation_fun)
 }
 
-abc_random <- function(priors) {
-  alply(priors, 1, function(x)
-    simulate_records_random(intercept = x$intercept,
-                            sd = x$sd,
-                            improvement = x$improvement,
-                            improvement_p = x$improvement_p))
-}
-
-abc_saturating <- function(priors) {
-  alply(priors, 1, function(x)
-    simulate_records_saturating(intercept = x$intercept,
-                                sd = x$sd,
-                                mu_max = x$mu_max,
-                                K = x$K))
-}
-
-abc_logistic <- function(priors) {
-  alply(priors, 1, function(x)
-    simulate_records_logistic(intercept = x$intercept,
-                              sd = x$sd,
-                              mu_max = x$mu_max,
-                              a = x$a,
-                              b = x$b))
-}
+## Plot simulated data and real data together.
 
 posterior_plot <- function(sim_data) {
-  melted_sim <- melt(sim_data)
+  sim_data$year <- 1:nrow(sim_data)
+  melted_sim <- melt(sim_data, id.vars = "year")
   colnames(melted_sim) <- c("year", "replicate", "record")
   melted_sim$year <- melted_sim$year + 1900
   

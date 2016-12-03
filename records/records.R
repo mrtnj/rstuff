@@ -4,8 +4,10 @@ source("records_functions.R")
 
 ## Examples of models
 
-no_improvement <- replicate(50, simulate_records(improvement = 0)$record)
-with_improvement <- replicate(50, simulate_records()$record)
+no_improvement <- replicate(50, simulate_records(data.frame(intercept = 7, sd = 0.4,
+                                                 improvement = 0, improvement_squared = 0))$record)
+with_improvement <- replicate(50, simulate_records(data.frame(intercept = 7, sd = 0.4,
+                                                              improvement = 0.01, improvement_squared = 0))$record)
 
 melted_no_improvement <- melt(no_improvement)
 melted_improvement <- melt(with_improvement)
