@@ -188,3 +188,15 @@ posterior_plot <- function(sim_data) {
               colour = "red") + theme_bw()
 }
 
+
+## Calculate how often, in a simulated dataset, a new record happens.
+
+number_of_records <- function(sim_data) {
+  sim_data$year <- 1:nrow(sim_data)
+  melted_sim <- melt(sim_data, id.vars = "year")
+  colnames(melted_sim) <- c("year", "replicate", "record")
+  
+  ddply(melted_sim, "replicate", function(x) {
+    length(unique(x$record))
+  })
+}
