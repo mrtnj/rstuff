@@ -111,17 +111,23 @@ evaluate_abc <- function(sims, priors, cutoff = 3) {
   summary_statistics <- unlist(llply(sims, function(x)
     euclidian_distance(p = x$record, q = data_records$meters)))
 
-  posterior <- priors[which(summary_statistics < cutoff),]
-  accepted_sims <- sims[which(summary_statistics < cutoff)]
-  accepted_summary_statistics <- summary_statistics[which(summary_statistics < cutoff)]
-  sim_records <- llply(accepted_sims, function(x) x$record)
-  sim_records <- Reduce(function(x,y) cbind(x, y), sim_records)
-  sim_season_best <- llply(accepted_sims, function(x) x$season_best)
-  sim_season_best <- Reduce(function(x,y) cbind(x, y), sim_season_best)
-  colnames(sim_records) <- 1:ncol(sim_records)
-  colnames(sim_season_best) <- 1:ncol(sim_season_best)
+  passed <- which(summary_statistics < cutoff)
+  if (length(passed) > 0) {
+    posterior <- priors[passed,]
+    accepted_sims <- sims[passed]
+    accepted_summary_statistics <- summary_statistics[passed]
+    sim_records <- llply(accepted_sims, function(x) x$record)
+    sim_records <- data.frame(Reduce(function(x,y) cbind(x, y), sim_records))
+    sim_season_best <- llply(accepted_sims, function(x) x$season_best)
+    sim_season_best <- data.frame(Reduce(function(x,y) cbind(x, y), sim_season_best))
+    colnames(sim_records) <- 1:ncol(sim_records)
+    colnames(sim_season_best) <- 1:ncol(sim_season_best)
   
-  list(posterior, sim_records, sim_season_best, accepted_summary_statistics)
+    results <- list(posterior, sim_records, sim_season_best, accepted_summary_statistics)
+  } else {
+    results <- NULL
+  }
+  results
 }
 
 
