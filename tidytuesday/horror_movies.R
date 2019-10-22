@@ -5,10 +5,10 @@
 library(dplyr)
 library(egg)
 library(ggplot2)
+library(ggimage)
 library(lubridate)
 library(readr)
 library(stringr)
-
 
 
 movies <- read_csv("horror_movies.csv")
@@ -68,6 +68,7 @@ fit_budget  <- data.frame(release_month = month.abb,
 
 
 
+## Plot of month
 
 plot_number <- ggplot() +
     geom_bar(aes(x = release_month,
@@ -133,4 +134,62 @@ plot_combined <- ggarrange(plot_number,
 
 pdf("movies.pdf")
 print(plot_combined)
+dev.off()
+
+
+
+
+## Plot of day
+
+movies$yday  <- yday(movies$release_parsed)
+
+daycount <- summarise(group_by(movies, yday, release_year), n = n())
+
+halloween  <-  yday("2019-10-31")
+
+pumpkin_data  <- data.frame(x = halloween,
+                            y = -1,
+                            image = "pumpkin.png", stringsAsFactors = FALSE)
+
+breaks  <- yday(paste("2019-", 1:12, "-01", sep = ""))
+
+
+plot_year <- ggplot() +
+    geom_point(aes(x = yday,
+                   y = n),
+               colour = "green",
+               data = na.exclude(dc)) +
+    geom_image(aes(x = x,
+                   y = y,
+                   image = image),
+               data = pumpkin_data) +
+    facet_wrap(~ release_year,
+               ncol = 2) +
+    scale_x_continuous(breaks = breaks,
+                       labels = month.abb) +
+    ylim(-3, NA) +
+    labs(caption = "Pumpkin icon by Good Ware from www.flatiron.com.") +
+    theme(panel.grid = element_blank(),
+          strip.background = element_blank(),
+          text = element_text(family = "mono",
+                              colour = "grey",
+                              size = 16),
+          axis.text = element_text(family = "mono",
+                                   colour = "green",
+                                   size = 14),
+          axis.ticks = element_line(colour = "green"),
+          strip.text = element_text(family = "mono",
+                                    colour = "grey",
+                                    size = 16),
+          plot.background = element_rect(fill = "black"),
+          panel.background = element_rect(fill = "black")) +
+    xlab("") +
+    ylab("Horror films released on this day") +
+    ggtitle("When horror films are released")
+
+
+
+
+pdf("movies_year.pdf", width = 14)
+print(plot_year)
 dev.off()
