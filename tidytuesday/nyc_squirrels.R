@@ -35,10 +35,10 @@ ix  <- sample(1:nrow(squirrels), 100)
 
 plot_still  <- ggplot() +
     geom_image(aes(y = long, x = lat, image = image, group = key),
-               size = 0.06,
+               size = 0.04,
                data = filter(squirrels, age == "Adult")[ix,]) +
     geom_image(aes(y = long, x = lat, image = image, group = key),
-               size = 0.04,
+               size = 0.03,
                data = filter(squirrels, age == "Juvenile")[ix,]) +
     theme_bw() +
     theme(panel.grid = element_blank()) +
@@ -49,7 +49,7 @@ plot_still  <- ggplot() +
 ## The actual animation
 plot_colour <- ggplot() +
     geom_image(aes(y = long, x = lat, image = image, group = key),
-               size = 0.05,
+               size = 0.04,
                data = filter(squirrels, age == "Adult")) +
     geom_image(aes(y = long, x = lat, image = image, group = key),
                size = 0.03,
