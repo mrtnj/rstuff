@@ -30,7 +30,7 @@ commute$state_modified[commute$state == "Massachusett"]  <- "Massachusetts"
 ## Get the average per state
 
 state_average  <- summarise(group_by(commute, state_modified, mode),
-                            average = mean(percent))
+                            average = sum(percent * n)/sum(n))
 
 ## Combine averages and coordinates
 
