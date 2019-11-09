@@ -1,0 +1,23 @@
+## Data från VTI-rapport "Prediktioner av andelen personer som går respektive cyklar till jobbet", 2014
+## http://vti.diva-portal.org/smash/get/diva2:750960/FULLTEXT01.pdf
+kod, gang, cykel, namn
+1, 0.155, 0.063, Stockholms län
+3, 0.103, 0.130, Uppsala län
+4, 0.168, 0.128, Södermanlands län
+5, 0.142, 0.154, Östergötlands län
+6, 0.163, 0.110, Jönköpings län
+7, 0.096, 0.218, Kronobergs län
+9, 0.105, 0.177, Kalmar län;Gotlands län
+10, 0.156, 0.119, Blekinge län
+12, 0.068, 0.175, Skåne län
+13, 0.118, 0.158, Hallands län
+14, 0.111, 0.137, Västra Götalands län
+17, 0.117, 0.141, Värmlands län
+18, 0.169, 0.201, Örebro län
+19, 0.103, 0.152, Västmanlands län
+20, 0.096, 0.156, Dalarnas län
+21, 0.156, 0.143, Gävleborgs län
+22, 0.175, 0.053, Västernorrlands län
+23, 0.165, 0.120, Jämtlands län
+24, 0.176, 0.188, Västerbottens län
+25, 0.139, 0.1, Norrbottens län
