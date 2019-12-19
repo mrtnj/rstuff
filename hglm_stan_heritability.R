@@ -75,8 +75,6 @@ est_h2  <- model$varRanef / (model$varRanef + model$varFix)
 
 ## Stan
 
-options(mc.cores = parallel::detectCores())
-
 stan_model <- stan(file = "nishio_arakawa.stan",
                    data = list(Y = pheno$scaled_pheno,
                                X = X,
@@ -85,6 +83,9 @@ stan_model <- stan(file = "nishio_arakawa.stan",
                                J = 1,
                                K = 1000,
                                N = 1000))
+
+est_h2_stan <- summary(stan_model, pars = "h2")$summary
+
 
 ## brms
 
@@ -95,3 +96,9 @@ model_brms <- brm(scaled_pheno ~ 1 + (1|animal),
                   chains = 4,
                   cores = 1,
                   iter = 2000)
+
+posterior_brms <- posterior_samples(model_brms, pars = c("sd_animal", "sigma"))
+
+h2_brms  <- posterior_brms[,1]^2 / (posterior_brms[,1]^2 + posterior_brms[,2]^2)
+
+est_h2_brms <- mean(h2_brms)
