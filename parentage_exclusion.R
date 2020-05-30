@@ -119,9 +119,9 @@ check_lambs <- function(ewes,
         for (ram_ix in 1:rams@nInd) {
             ram_geno <- rams_geno[ram_ix,]
             inconsistent_with_rams[[lamb_ix]]$inconsistent_markers[ram_ix] <-
-              mendelian_consistency(ewe_geno,
-                                    ram_geno,
-                                    lamb_geno)
+              mendelian_inconsistency(ewe_geno,
+                                      ram_geno,
+                                      lamb_geno)
             inconsistent_with_rams[[lamb_ix]]$opposite_homozygotes[ram_ix] <-
               opposite_homozygotes(ram_geno,
                                    lamb_geno)
@@ -147,7 +147,7 @@ true_father <- data.frame(lamb_id = lambs@id,
 plot_tile <- ggplot() +
   geom_tile(aes(x = lamb_id,
                 y = ram_id,
-                fill = inconsistent_markers/10),
+                fill = (1000 - inconsistent_markers)/10),
             data = filter(lambs_inconsistency, lamb_id %in% random_lambs)) +
   geom_point(aes(x = lamb_id,
                  y = ram_id),
@@ -159,7 +159,7 @@ plot_tile <- ggplot() +
 
 
 plot_methods <- qplot(x = opposite_homozygotes,
-                      y = inconsistent_markers,
+                      y = inconsistnt_markers,
                       data = lambs_inconsistency) +
   theme_bw() +
   theme(panel.grid = element_blank()) +
