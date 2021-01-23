@@ -10,7 +10,7 @@ pheno_mean <- function(p, gamma) {
 }
 
 allele_frequency_change <- function(s, gamma, p, z_prime, mu) {
-  -s * gamma * p * (1 - p) * (pheno_mean(p, gamma) - z_prime) -
+  -s * gamma * p * (1 - p) * (pheno_mean(p, gamma) - z_prime) +
     - s * gamma^2 * 0.5 * p * (1 - p) * (1 - p - p) +
     mu * (1 - p - p)
 }
@@ -21,25 +21,29 @@ allele_frequency_change <- function(s, gamma, p, z_prime, mu) {
 run_steps <- function(s, gamma, p0, z_prime, mu, n_gen) {
   l <- length(p0)
 
-  ## Allele frequency vector for each locus
-  p <- vector(mode = "list",
-              length = l)
+  ## List of generations
+  gen <- vector(mode = "list",
+                length = n_gen)
 
-  for (i in seq_along(p)) {
-    p[[i]] <- numeric(n_gen)
-    p[[i]][1] <- p0[i]
+  p_list <- vector(mode = "list",
+                   length = l)
+  
+  for (i in 1:l) {
+    p_list[[i]] <- numeric(n_gen)
   }
   
+  p <- p0
   
-  for (gen in 2:n_gen) {
-    for (loc in 1:l) {
-      delta_p <- allele_frequency_change(s, gamma[loc], p[[loc]][gen - 1], z_prime, mu)
-      p[[loc]][gen] <- p[[loc]][gen - 1] + delta_p
+  for (gen_ix in 2:(n_gen + 1)) {
+    delta_p <- allele_frequency_change(s, gamma, p, z_prime, mu)
+    p <- p + delta_p
+    
+    for (loc_ix in 1:l) {
+      p_list[[loc_ix]][gen_ix - 1] <- p[loc_ix]
     }
   }
-  p
-  
-  p_df <- data.frame(p)
+
+  p_df <- as.data.frame(p_list)
   colnames(p_df) <- paste("p", 1:ncol(p_df), sep = "")
   p_df$t <- 1:nrow(p_df)
   p_df
@@ -49,7 +53,7 @@ run_steps <- function(s, gamma, p0, z_prime, mu, n_gen) {
 ## Simulate approaching the optimum
 
 s <- 1
-gamma <- c(1, 0.1)
+gamma <- c(1, 0.01)
 z_prime <- 0 ## We start at optimum = 0
 mu <- 1e-4
 n_gen <- 1000
