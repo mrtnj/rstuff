@@ -106,7 +106,7 @@ p0.05 <- run_steps(s = s,
                    p0 = c(eq0.05[2], eq0.05[3]),
                    z_prime = 0.1,
                    mu = 1e-4,
-                   n_gen = 1000)
+                   n_gen = 10000)
 
 pheno_mean(p = c(p0.05$p1[nrow(p0.05)],
                  p0.05$p2[nrow(p0.05)]),
@@ -115,9 +115,9 @@ pheno_mean(p = c(p0.05$p1[nrow(p0.05)],
 p0.01 <- run_steps(s = s,
                    gamma = c(0.01, 0.01),
                    p0 = c(0.5, 0.5),
-                   z_prime = 0.1,
+                   z_prime = 0.02,
                    mu = 1e-4,
-                   n_gen = 1000)
+                   n_gen = 10000)
 
 pheno_mean(p = c(p0.01$p1[nrow(p0.01)],
                  p0.01$p2[nrow(p0.01)]),
@@ -132,7 +132,7 @@ plot_approach0.01 <- plot_approach_2d(p0.01)
 
 animation0.05 <-
   qplot(x = p1, y = p2,
-        data = p0.05[seq(from = 10, to = 1000, by = 10),],
+        data = p0.05[seq(from = 1, to = 10000, by = 100),],
         size = I(5)) +
   xlim(0, 1) +
   ylim(0, 1) +
@@ -143,7 +143,7 @@ animation0.05 <-
 
 animation0.01 <-
   qplot(x = p1, y = p2,
-        data = p0.01[seq(from = 10, to = 1000, by = 10),],
+        data = p0.01[seq(from = 1, to = 10000, by = 100),],
         size = I(5)) +
   xlim(0, 1) +
   ylim(0, 1) +
