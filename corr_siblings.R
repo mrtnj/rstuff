@@ -4,9 +4,9 @@ library(dplyr)
 library(ggplot2)
 library(purrr)
 
-primitive_gwas <- function(training) {
+primitive_gwas <- function(training, SP) {
   
-  geno <- as.data.frame(pullSnpGeno(training))
+  geno <- as.data.frame(pullSnpGeno(training, simParam = SP))
   
   models <- lapply(geno, function(g) lm(g ~ training@pheno[,1]))
   
@@ -16,39 +16,36 @@ primitive_gwas <- function(training) {
 
 
 sim_pop <- function(x) {
-  founderpop <- runMacs2(nInd = 2000,
-                         nChr = 10,
-                         segSites = 1100,
-                         Ne = 1000,
-                         histNe = NULL,
-                         histGen = NULL)
+  founderpop <- runMacs(nInd = 2000,
+                        nChr = 10,
+                        segSites = 1100)
   
   SP <- SimParam$new(founderpop)
   SP$addTraitA(1000)
   SP$addSnpChip(100)
   SP$setVarE(h2 = 0.5)
-  SP$setGender("yes_sys")
-  SP$restrSegSites(maxQtl = 1000,
-                   maxSnp = 100,
+  SP$setSexes("yes_sys")
+  SP$restrSegSites(minSnpPerChr = 100,
+                   minQtlPerChr = 1000,
                    overlap = FALSE)
   
   
-  pop <- newPop(founderpop)
+  pop <- newPop(founderpop, simParam = SP)
   
   training <- pop[1:1000]
   
-  f1_close <- randCross(training, nCrosses = 100, nProgeny = 2)
-  f1_distant <- randCross(pop[1001:2000], nCrosses = 100, nProgeny = 2)
+  f1_close <- randCross(training, nCrosses = 100, nProgeny = 2, simParam = SP)
+  f1_distant <- randCross(pop[1001:2000], nCrosses = 100, nProgeny = 2, simParam = SP)
   
   ebv <- RRBLUP(training, simParam = SP)
   
-  gwas <- primitive_gwas(training)
+  gwas <- primitive_gwas(training, SP)
   
-  f1_close <- setEBV(pop = f1_close, solution = ebv)
-  f1_distant <- setEBV(pop = f1_distant, solution = ebv)
+  f1_close <- setEBV(pop = f1_close, solution = ebv, simParam = SP)
+  f1_distant <- setEBV(pop = f1_distant, solution = ebv, simParam = SP)
   
-  score_close <- pullSnpGeno(f1_close) %*% gwas$estimate
-  score_distant <- pullSnpGeno(f1_distant) %*% gwas$estimate
+  score_close <- pullSnpGeno(f1_close, simParam = SP) %*% gwas$estimate
+  score_distant <- pullSnpGeno(f1_distant, simParam = SP) %*% gwas$estimate
   
   sib1_ix <- seq(from = 1, to = 200, by = 2)
   sib2_ix <- seq(from = 2, to = 200, by = 2)
@@ -93,7 +90,7 @@ sim_pop <- function(x) {
 res <- map_dfr(1:50, sim_pop)
 
 saveRDS(res,
-        file = "corr_siblings_results.Rds")
+        file = "corr_siblings_results_GENERIc.Rds")
 
 
 ## Summarise
