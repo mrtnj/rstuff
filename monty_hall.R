@@ -90,3 +90,5 @@ for (combination_ix in 1:n_combinations) {
   combinations$p_win_switch[combination_ix] <- p[2]
 }
 
+any(combinations$p_win_hold > combinations$p_win_switch)
+
