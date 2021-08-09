@@ -49,7 +49,7 @@ print(result)
 models <- map(split(fake_data,
                     fake_data$group),
                     fit_model)
-result <- map_df(models_purrr,
+result <- map_df(models,
                  tidy,
                  .id = "group")
 
